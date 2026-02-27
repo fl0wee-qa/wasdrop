@@ -31,6 +31,36 @@ export const adminProposalSchema = z.discriminatedUnion("type", [
     job: z.enum(["deals", "news"]),
     countries: z.array(z.string().length(2)).optional(),
   }),
+  z.object({
+    type: z.literal("create_news_article"),
+    title: z.string().min(1),
+    sourceName: z.string().min(1),
+    sourceFeedUrl: z.string().optional(),
+    url: z.string().url(),
+    category: z.string().min(1),
+    publishedAt: z.string().datetime().optional(),
+    imageUrl: z.string().url().optional(),
+    contentSnippet: z.string().optional(),
+    aiSummary: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal("create_game_deal"),
+    title: z.string().min(1),
+    description: z.string().optional(),
+    developer: z.string().optional(),
+    publisher: z.string().optional(),
+    imageUrl: z.string().url().optional(),
+    storeName: z.string().min(1),
+    storeSlug: z.string().optional(),
+    dealUrl: z.string().url(),
+    country: z.string().length(2).optional(),
+    currency: z.string().length(3),
+    priceCents: z.coerce.number().int().nonnegative(),
+    originalPriceCents: z.coerce.number().int().nonnegative(),
+    discountPercent: z.coerce.number().int().min(0).max(100).optional(),
+    startAt: z.string().datetime().optional(),
+    endAt: z.string().datetime().optional(),
+  }),
 ]);
 
 export type AdminProposal = z.infer<typeof adminProposalSchema>;
@@ -55,7 +85,7 @@ function extractJsonObject(raw: string) {
 }
 
 async function buildAdminContext() {
-  const [topDeals, recentNews, expiredDealsCount] = await Promise.all([
+  const [topDeals, recentNews, expiredDealsCount, stores] = await Promise.all([
     prisma.deal.findMany({
       orderBy: [{ discountPercent: "desc" }, { lastSeenAt: "desc" }],
       take: 10,
@@ -74,6 +104,11 @@ async function buildAdminContext() {
         endAt: { lt: new Date() },
       },
     }),
+    prisma.store.findMany({
+      orderBy: { name: "asc" },
+      select: { name: true, slug: true },
+      take: 20,
+    }),
   ]);
 
   return {
@@ -88,6 +123,7 @@ async function buildAdminContext() {
     })),
     recentNews,
     expiredDealsCount,
+    stores,
   };
 }
 
@@ -107,7 +143,7 @@ Rules:
   "reply": "short response",
   "proposals": [
     {
-      "type": "create_curation|categorize_news|cleanup_expired_deals|trigger_sync",
+      "type": "create_curation|categorize_news|cleanup_expired_deals|trigger_sync|create_news_article|create_game_deal",
       "...": "fields required by that proposal type"
     }
   ]

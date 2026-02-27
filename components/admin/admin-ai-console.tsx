@@ -20,7 +20,8 @@ export function AdminAiConsole() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: "Describe what you want to optimize: curated lists, news categorization, cleanup, or sync suggestions.",
+      content:
+        "Describe what you want to do: curate featured lists, categorize news, create a news article, add a game+deal, cleanup expired deals, or trigger sync.",
     },
   ]);
   const [draft, setDraft] = useState("");
@@ -97,7 +98,7 @@ export function AdminAiConsole() {
           <Textarea
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Example: propose 3 featured RPG collections and cleanup expired EU deals."
+            placeholder="Example: add a Steam deal for Hades II in US, then create a Hardware news article draft."
             className="min-h-24"
             maxLength={3000}
           />
