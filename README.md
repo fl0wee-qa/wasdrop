@@ -163,7 +163,7 @@ Open `http://127.0.0.1:3000`.
 AI_CHAT_ENABLED="true"
 QWEN_USER_API_KEY="..."
 QWEN_USER_BASE_URL="https://your-openai-compatible-endpoint/v1"
-QWEN_USER_MODEL="qwen/qwen3.5-397b-a17b-a17b"
+QWEN_USER_MODEL="qwen/qwen3.5-397b-a17b"
 ```
 2. Set admin AI env vars (separate credentials):
 ```env
@@ -171,7 +171,7 @@ ADMIN_AI_ENABLED="true"
 ADMIN_AI_AUTO_APPLY="false"
 QWEN_ADMIN_API_KEY="..."
 QWEN_ADMIN_BASE_URL="https://your-openai-compatible-endpoint/v1"
-QWEN_ADMIN_MODEL="qwen/qwen3.5-397b-a17b-a17b"
+QWEN_ADMIN_MODEL="qwen/qwen3.5-397b-a17b"
 ```
 3. Restart app.  
 - `/chat` uses user key only.
@@ -216,13 +216,13 @@ ALERTS_FROM_EMAIL="alerts@wasdrop.com"
 AI_CHAT_ENABLED="false"
 QWEN_USER_API_KEY=""
 QWEN_USER_BASE_URL="https://<provider>/v1"
-QWEN_USER_MODEL="qwen/qwen3.5-397b-a17b-a17b"
+QWEN_USER_MODEL="qwen/qwen3.5-397b-a17b"
 
 # Admin AI (optional, separate credentials)
 ADMIN_AI_ENABLED="false"
 QWEN_ADMIN_API_KEY=""
 QWEN_ADMIN_BASE_URL="https://<provider>/v1"
-QWEN_ADMIN_MODEL="qwen/qwen3.5-397b-a17b-a17b"
+QWEN_ADMIN_MODEL="qwen/qwen3.5-397b-a17b"
 
 # Cron protection
 CRON_SECRET="another-long-random-secret"
