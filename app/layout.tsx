@@ -50,7 +50,7 @@ export default async function RootLayout({
           <RegionBootstrap />
           <div className="hero-gradient relative min-h-screen">
             <Header country={country} />
-            <main className="mx-auto w-full max-w-7xl px-4 pb-8 pt-28 md:px-6 md:pb-12 md:pt-32">{children}</main>
+            <main className="mx-auto w-full max-w-7xl px-4 pb-8 pt-40 md:px-6 md:pb-12 md:pt-44">{children}</main>
             <Footer />
             <CookieBanner />
           </div>
