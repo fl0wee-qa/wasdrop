@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { applyAdminProposal } from "@/lib/ai/admin-apply";
 import { runAdminAssistant } from "@/lib/ai/admin-assistant";
 import { getAuthSession } from "@/lib/auth";
-import { isAdminAiEnabled } from "@/lib/env";
+import { isAdminAiAutoApplyEnabled, isAdminAiEnabled } from "@/lib/env";
 import { consumeRateLimit, getClientIp } from "@/lib/ip-rate-limit";
 
 const schema = z.object({
@@ -49,7 +50,37 @@ export async function POST(request: Request) {
 
   try {
     const response = await runAdminAssistant(parsed.data.messages);
-    return NextResponse.json(response);
+    const autoApplyEnabled = isAdminAiAutoApplyEnabled();
+    if (!autoApplyEnabled || response.proposals.length === 0) {
+      return NextResponse.json(response);
+    }
+
+    const proposalsToApply = response.proposals.slice(0, 5);
+    const applied = await Promise.all(
+      proposalsToApply.map(async (proposal) => {
+        try {
+          const result = await applyAdminProposal({
+            proposal,
+            actorUserId: session.user.id,
+            source: "auto",
+          });
+          return { proposalType: proposal.type, success: true as const, result };
+        } catch (error) {
+          return {
+            proposalType: proposal.type,
+            success: false as const,
+            error: error instanceof Error ? error.message : "Failed to auto-apply proposal.",
+          };
+        }
+      }),
+    );
+
+    return NextResponse.json({
+      ...response,
+      autoApplied: true,
+      applied,
+      skippedProposalCount: Math.max(0, response.proposals.length - proposalsToApply.length),
+    });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Admin AI request failed." },

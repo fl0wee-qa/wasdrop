@@ -11,6 +11,13 @@ type Proposal = {
   [key: string]: unknown;
 };
 
+type AppliedResult = {
+  proposalType: string;
+  success: boolean;
+  result?: unknown;
+  error?: string;
+};
+
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -28,6 +35,7 @@ export function AdminAiConsole() {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [pending, setPending] = useState(false);
   const [status, setStatus] = useState("");
+  const [applied, setApplied] = useState<AppliedResult[]>([]);
 
   async function sendMessage() {
     const content = draft.trim();
@@ -49,6 +57,9 @@ export function AdminAiConsole() {
     const payload = (await response.json().catch(() => ({}))) as {
       reply?: string;
       proposals?: Proposal[];
+      autoApplied?: boolean;
+      applied?: AppliedResult[];
+      skippedProposalCount?: number;
       error?: string;
     };
     setPending(false);
@@ -60,6 +71,16 @@ export function AdminAiConsole() {
 
     setMessages((prev) => [...prev, { role: "assistant", content: payload.reply ?? "No response." }]);
     setProposals(payload.proposals ?? []);
+    setApplied(payload.applied ?? []);
+
+    if (payload.autoApplied) {
+      const successCount = (payload.applied ?? []).filter((item) => item.success).length;
+      const failedCount = (payload.applied ?? []).length - successCount;
+      const skipped = payload.skippedProposalCount ?? 0;
+      setStatus(
+        `Auto-apply enabled: ${successCount} applied, ${failedCount} failed${skipped > 0 ? `, ${skipped} skipped` : ""}.`,
+      );
+    }
   }
 
   async function applyProposal(proposal: Proposal) {
@@ -110,6 +131,27 @@ export function AdminAiConsole() {
           {status ? <p className="text-sm text-zinc-400">{status}</p> : null}
         </CardContent>
       </Card>
+
+      {applied.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Auto-Applied Results</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {applied.map((item, index) => (
+              <div key={`${item.proposalType}-${index}`} className="rounded-md border border-zinc-800 bg-zinc-950/70 p-3">
+                <p className="text-xs uppercase tracking-wide text-zinc-500">{item.proposalType}</p>
+                <p className={`text-sm ${item.success ? "text-emerald-400" : "text-red-400"}`}>
+                  {item.success ? "Applied" : "Failed"}
+                </p>
+                <pre className="mt-2 overflow-x-auto text-xs text-zinc-300">
+                  {JSON.stringify(item.success ? item.result : { error: item.error }, null, 2)}
+                </pre>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader>

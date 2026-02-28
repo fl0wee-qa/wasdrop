@@ -24,6 +24,7 @@ const envSchema = z.object({
   QWEN_USER_BASE_URL: z.string().url().optional(),
   QWEN_USER_MODEL: z.string().default("qwen/qwen3.5-397b-a17b-a17b"),
   ADMIN_AI_ENABLED: z.enum(["true", "false"]).default("false"),
+  ADMIN_AI_AUTO_APPLY: z.enum(["true", "false"]).default("false"),
   QWEN_ADMIN_API_KEY: z.string().optional(),
   QWEN_ADMIN_BASE_URL: z.string().url().optional(),
   QWEN_ADMIN_MODEL: z.string().default("qwen/qwen3.5-397b-a17b-a17b"),
@@ -67,4 +68,8 @@ export function isUserAiChatEnabled() {
 
 export function isAdminAiEnabled() {
   return env().ADMIN_AI_ENABLED === "true";
+}
+
+export function isAdminAiAutoApplyEnabled() {
+  return env().ADMIN_AI_AUTO_APPLY === "true";
 }

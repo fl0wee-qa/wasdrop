@@ -168,6 +168,7 @@ QWEN_USER_MODEL="qwen/qwen3.5-397b-a17b-a17b"
 2. Set admin AI env vars (separate credentials):
 ```env
 ADMIN_AI_ENABLED="true"
+ADMIN_AI_AUTO_APPLY="false"
 QWEN_ADMIN_API_KEY="..."
 QWEN_ADMIN_BASE_URL="https://your-openai-compatible-endpoint/v1"
 QWEN_ADMIN_MODEL="qwen/qwen3.5-397b-a17b-a17b"
@@ -175,7 +176,8 @@ QWEN_ADMIN_MODEL="qwen/qwen3.5-397b-a17b-a17b"
 3. Restart app.  
 - `/chat` uses user key only.
 - `/admin/ai` uses admin key only.
-- Admin AI never writes directly; it proposes JSON and requires explicit Apply click.
+- By default Admin AI proposes JSON and requires explicit Apply click.
+- If `ADMIN_AI_AUTO_APPLY=true`, `/admin/ai` chat auto-applies proposals and writes `AuditLog` entries.
 
 ## Production `.env` Checklist
 Use your real domain values (example uses `https://wasdrop.com`):
