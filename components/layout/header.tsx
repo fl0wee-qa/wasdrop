@@ -11,7 +11,7 @@ export function Header({ country }: { country: string }) {
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 md:px-6">
         <div className="flex items-center gap-6 md:gap-12">
           <Link href="/" className="flex items-center" aria-label="WASDrop home">
-            <Image src="/images/logo.svg" alt="WASDrop" width={960} height={240} className="h-12 w-auto md:h-16" priority />
+            <Image src="/images/logo.svg" alt="WASDrop" width={570} height={420} className="h-14 w-auto md:h-[4.5rem]" priority />
           </Link>
           <nav className="hidden items-center gap-8 md:flex">
             <Link href="/deals" className="nav-link text-sm font-semibold">
