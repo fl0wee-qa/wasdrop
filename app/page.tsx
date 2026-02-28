@@ -46,8 +46,8 @@ export default async function HomePage() {
     <div className="mx-auto max-w-7xl px-0 pb-16 md:pb-20">
       <section className="mb-16 flex flex-col items-center justify-between gap-8 text-center md:mb-20 md:flex-row md:gap-12 md:text-left">
         <div className="max-w-2xl">
-          <h1 className="mb-5 text-5xl font-extrabold leading-none sm:text-6xl md:mb-6 md:text-8xl">
-            WAS<span className="text-glow-cyan text-cyan-300">DROP</span>
+          <h1 className="mb-5 text-5xl font-extrabold leading-none sm:text-6xl md:mb-6 md:text-7xl">
+            Premium Gaming Deals and News
           </h1>
           <p className="mb-6 text-base leading-relaxed text-slate-400 sm:text-xl md:mb-8">
             The ultimate aggregator for PC game discounts, verified freebies, and critical industry updates. Do not just
