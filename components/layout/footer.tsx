@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -6,8 +7,8 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="mb-10 flex flex-col justify-between gap-8 md:flex-row md:items-start">
           <div>
-            <Link href="/" className="mb-3 block text-2xl font-extrabold tracking-tighter text-white">
-              WAS<span className="text-cyan-300">DROP</span>
+            <Link href="/" className="mb-3 inline-flex items-center justify-center" aria-label="WASDrop home">
+              <Image src="/images/logo-main.png" alt="WASDrop" width={672} height={465} className="block h-10 w-auto md:h-12" />
             </Link>
             <p className="max-w-sm text-sm text-slate-500">
               Premium aggregator for PC game discounts, freebies, and gamer-relevant industry updates.

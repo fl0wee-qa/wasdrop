@@ -10,8 +10,8 @@ export function Header({ country }: { country: string }) {
     <header className="fixed top-0 z-50 w-full border-b border-white/5 bg-[#0b0f16]/80 backdrop-blur-md">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-4 md:px-6">
         <div className="flex items-center gap-6 md:gap-12">
-          <Link href="/" className="flex items-center" aria-label="WASDrop home">
-            <Image src="/images/logo.svg" alt="WASDrop" width={570} height={420} className="h-14 w-auto md:h-[4.5rem]" priority />
+          <Link href="/" className="flex items-center justify-center" aria-label="WASDrop home">
+            <Image src="/images/logo-main.png" alt="WASDrop" width={672} height={465} className="block h-12 w-auto md:h-14" priority />
           </Link>
           <nav className="hidden items-center gap-8 md:flex">
             <Link href="/deals" className="nav-link text-sm font-semibold">
