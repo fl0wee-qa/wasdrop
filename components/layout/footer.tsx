@@ -1,13 +1,15 @@
 import Link from "next/link";
 
+import { Logo } from "@/components/layout/logo";
+
 export function Footer() {
   return (
     <footer className="border-t border-white/5 bg-[#070a0f] pb-10 pt-16">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="mb-10 flex flex-col justify-between gap-8 md:flex-row md:items-start">
           <div>
-            <Link href="/" className="mb-3 block text-2xl font-extrabold tracking-tighter text-white">
-              WAS<span className="text-cyan-300">DROP</span>
+            <Link href="/" className="mb-3 inline-flex items-center" aria-label="WASDrop home">
+              <Logo className="h-10 w-auto md:h-12" />
             </Link>
             <p className="max-w-sm text-sm text-slate-500">
               Premium aggregator for PC game discounts, freebies, and gamer-relevant industry updates.
