@@ -159,14 +159,33 @@ export function AdminAiConsole() {
         </CardHeader>
         <CardContent className="space-y-3">
           {proposals.length === 0 ? <p className="text-sm text-zinc-500">No proposals yet.</p> : null}
-          {proposals.map((proposal, index) => (
-            <div key={`${proposal.type}-${index}`} className="space-y-2 rounded-md border border-zinc-800 bg-zinc-950/70 p-3">
-              <pre className="overflow-x-auto text-xs text-zinc-300">{JSON.stringify(proposal, null, 2)}</pre>
-              <Button variant="secondary" onClick={() => void applyProposal(proposal)}>
-                Apply
-              </Button>
-            </div>
-          ))}
+          {proposals.map((proposal, index) => {
+            const { type, ...rest } = proposal;
+            return (
+              <div key={`${proposal.type}-${index}`} className="flex flex-col rounded-xl border border-white/10 bg-black/40 p-4 transition-all hover:border-white/20">
+                <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="rounded bg-indigo-500/20 px-2 py-1 text-xs font-bold uppercase tracking-wider text-indigo-300 border border-indigo-500/30">
+                      {type}
+                    </span>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => void applyProposal(proposal)} className="border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10">
+                    Apply Action
+                  </Button>
+                </div>
+                <div className="grid grid-cols-[1fr_3fr] gap-2 text-xs">
+                  {Object.entries(rest).map(([key, value]) => (
+                    <div key={key} className="contents">
+                      <div className="font-mono text-zinc-500 p-1.5 bg-black/30 rounded">{key}</div>
+                      <div className="font-mono text-emerald-300 p-1.5 bg-black/30 rounded overflow-hidden text-ellipsis whitespace-nowrap">
+                        {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
     </div>

@@ -95,6 +95,7 @@ export async function getNewsPage(input: {
   pageSize?: number;
   search?: string;
   category?: string;
+  sourceId?: string;
 }) {
   const page = input.page ?? 1;
   const pageSize = input.pageSize ?? 20;
@@ -112,6 +113,11 @@ export async function getNewsPage(input: {
     ...(input.category
       ? {
           category: input.category,
+        }
+      : {}),
+    ...(input.sourceId
+      ? {
+          sourceId: input.sourceId,
         }
       : {}),
   };

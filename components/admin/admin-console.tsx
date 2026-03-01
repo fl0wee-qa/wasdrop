@@ -16,6 +16,7 @@ export function AdminConsole({ curations: initialCurations, sources: initialSour
   const [status, setStatus] = useState<string>("");
   const [curations, setCurations] = useState(initialCurations);
   const [sources, setSources] = useState(initialSources);
+  const [selectedCurations, setSelectedCurations] = useState<Set<string>>(new Set());
 
   async function triggerJob(job: "deals" | "news") {
     setStatus(`Running ${job} sync...`);
@@ -72,6 +73,34 @@ export function AdminConsole({ curations: initialCurations, sources: initialSour
     setStatus("Source saved");
   }
 
+  async function deleteSelectedCurations() {
+    if (selectedCurations.size === 0) return;
+    
+    setStatus("Deleting curations...");
+    const ids = Array.from(selectedCurations);
+    const response = await fetch("/api/admin/curations", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
+
+    if (!response.ok) {
+      setStatus("Failed to delete curations");
+      return;
+    }
+
+    setCurations(curations.filter(c => !selectedCurations.has(c.id)));
+    setSelectedCurations(new Set());
+    setStatus(`Deleted ${ids.length} curations successfully.`);
+  }
+
+  function toggleSelection(id: string) {
+    const next = new Set(selectedCurations);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedCurations(next);
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -86,27 +115,44 @@ export function AdminConsole({ curations: initialCurations, sources: initialSour
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle>Featured Curations</CardTitle>
+          {selectedCurations.size > 0 && (
+            <Button variant="destructive" size="sm" onClick={() => void deleteSelectedCurations()}>
+              Delete Selected ({selectedCurations.size})
+            </Button>
+          )}
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4 pt-4">
           <form
-            className="grid gap-3 md:grid-cols-2"
+            className="grid gap-3 md:grid-cols-2 p-4 rounded-xl border border-white/5 bg-black/40"
             action={(formData) => {
               void createCuration(formData);
             }}
           >
-            <Input name="type" placeholder="featured|collection" required />
-            <Input name="title" placeholder="Best RPG Deals This Week" required />
-            <Input name="description" placeholder="Optional description" className="md:col-span-2" />
-            <Textarea name="itemsJson" placeholder='[{"gameSlug":"cyberpunk-2077"}]' className="md:col-span-2" required />
-            <Button type="submit" className="md:w-fit">Save curation</Button>
+            <Input name="type" placeholder="featured|collection" required className="bg-black/40 border-white/10" />
+            <Input name="title" placeholder="Best RPG Deals This Week" required className="bg-black/40 border-white/10" />
+            <Input name="description" placeholder="Optional description" className="md:col-span-2 bg-black/40 border-white/10" />
+            <Textarea name="itemsJson" placeholder='[{"gameSlug":"cyberpunk-2077"}]' className="md:col-span-2 bg-black/40 border-white/10 font-mono text-sm" required />
+            <Button type="submit" className="md:w-fit bg-cyan-600 hover:bg-cyan-500 text-white border-none transition-all">Save curation</Button>
           </form>
+          
           <div className="space-y-2 text-sm text-zinc-300">
+            {curations.length === 0 ? <p className="text-zinc-500">No curations available.</p> : null}
             {curations.map((curation) => (
-              <div key={curation.id} className="rounded-md border border-zinc-800 p-3">
-                <p className="font-medium">{curation.title}</p>
-                <p className="text-zinc-400">{curation.type}</p>
+              <div key={curation.id} className="relative flex items-center justify-between rounded-lg border border-white/10 bg-black/20 p-3 hover:bg-white/5 transition-all">
+                <div className="flex items-center gap-3">
+                  <input 
+                    type="checkbox" 
+                    checked={selectedCurations.has(curation.id)}
+                    onChange={() => toggleSelection(curation.id)}
+                    className="h-4 w-4 rounded border-white/20 bg-black/40 accent-cyan-400 cursor-pointer"
+                  />
+                  <div>
+                    <p className="font-medium text-white">{curation.title}</p>
+                    <p className="text-xs text-zinc-500 uppercase tracking-widest mt-0.5">{curation.type}</p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

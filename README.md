@@ -243,6 +243,14 @@ Production sanity checks:
 - Set `CRON_SECRET` and send `Authorization: Bearer <CRON_SECRET>` from scheduler.
 - Keep `ENABLE_MOCK_DATA=false` in production.
 
+Before first production traffic, apply Prisma migrations on the production DB:
+
+```powershell
+npm run db:migrate:deploy
+```
+
+If using Railway, run with the **public** database URL. Internal hosts (for example `*.railway.internal`) are not reachable from your local machine.
+
 ## Useful scripts
 - `scripts/dev.ps1 -WithDocker`
 - `scripts/db.ps1 -Action migrate|push|seed|studio`

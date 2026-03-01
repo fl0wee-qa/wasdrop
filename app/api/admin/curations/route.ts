@@ -13,7 +13,7 @@ const createSchema = z.object({
 });
 
 const deleteSchema = z.object({
-  id: z.string().min(1),
+  ids: z.array(z.string()).min(1),
 });
 
 async function ensureAdmin() {
@@ -76,12 +76,12 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
-  await prisma.adminCuration.delete({ where: { id: parsed.data.id } });
+  await prisma.adminCuration.deleteMany({ where: { id: { in: parsed.data.ids } } });
   await prisma.auditLog.create({
     data: {
       actorUserId: user.id,
-      action: "ADMIN_CURATION_DELETE",
-      metadataJson: { curationId: parsed.data.id },
+      action: "ADMIN_CURATION_DELETE_BULK",
+      metadataJson: { curationIds: parsed.data.ids },
     },
   });
 

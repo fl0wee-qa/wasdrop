@@ -17,7 +17,9 @@ export type DealFilters = {
   minTrustScore?: number;
   minPriceCents?: number;
   maxPriceCents?: number;
-  sort?: "discount" | "price_asc" | "price_desc" | "latest";
+  hideExpired?: boolean;
+  hideNoEndDate?: boolean;
+  sort?: "discount" | "price_asc" | "price_desc" | "latest" | "quality";
   page?: number;
   pageSize?: number;
 };
@@ -253,7 +255,13 @@ export async function getDeals(filters: DealFilters) {
         ? { priceCents: "desc" as const }
         : filters.sort === "latest"
           ? { lastSeenAt: "desc" as const }
-          : { discountPercent: "desc" as const };
+          : filters.sort === "quality"
+            ? [
+                { trustScore: "desc" as const },
+                { discountPercent: "desc" as const },
+                { lastSeenAt: "desc" as const },
+              ]
+            : { discountPercent: "desc" as const };
 
   const where = {
     country,
@@ -268,6 +276,8 @@ export async function getDeals(filters: DealFilters) {
           },
         }
       : {}),
+    ...(filters.hideExpired ? { OR: [{ endAt: null }, { endAt: { gt: new Date() } }] } : {}),
+    ...(filters.hideNoEndDate ? { endAt: { not: null } } : {}),
     ...(filters.stores?.length
       ? {
           store: {

@@ -9,6 +9,7 @@ import { RegionBootstrap } from "@/components/layout/region-bootstrap";
 import { startInAppJobs } from "@/lib/jobs/runner";
 import { getAuthSession } from "@/lib/auth";
 import { resolveCountry } from "@/lib/services/user-preferences";
+import { ZoneBackdrop } from "@/components/layout/zone-backdrop";
 
 import "./globals.css";
 
@@ -44,13 +45,14 @@ export default async function RootLayout({
   const country = await resolveCountry(session?.user?.id);
 
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${headingFont.variable} ${bodyFont.variable} bg-background text-foreground antialiased`}>
+    <html lang="en" className="dark dark-theme-forced" suppressHydrationWarning>
+      <body className={`${headingFont.variable} ${bodyFont.variable} bg-background text-foreground antialiased selection:bg-cyan-500/30 selection:text-white`}>
         <AppProviders>
           <RegionBootstrap />
-          <div className="hero-gradient relative min-h-screen">
+          <ZoneBackdrop />
+          <div className="relative min-h-screen flex flex-col">
             <Header country={country} />
-            <main className="mx-auto w-full max-w-7xl px-4 pb-8 pt-28 md:px-6 md:pb-12 md:pt-32">{children}</main>
+            <main className="mx-auto w-full max-w-7xl px-4 pb-8 pt-28 md:px-6 md:pb-12 md:pt-32 flex-1">{children}</main>
             <Footer />
             <CookieBanner />
           </div>

@@ -44,9 +44,9 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-7xl px-0 pb-16 md:pb-20">
-      <section className="mb-16 flex flex-col items-center justify-between gap-8 text-center md:mb-20 md:flex-row md:gap-12 md:text-left">
+      <section className="hero-shell mb-16 flex flex-col items-center justify-between gap-8 text-center md:mb-20 md:flex-row md:gap-12 md:text-left">
         <div className="max-w-2xl">
-          <h1 className="mb-5 text-5xl font-extrabold leading-none sm:text-6xl md:mb-6 md:text-7xl">
+          <h1 className="mb-5 text-5xl font-extrabold leading-none tracking-tight sm:text-6xl md:mb-6 md:text-7xl text-glow-cyan text-white">
             Premium Gaming Deals and News
           </h1>
           <p className="mb-6 text-base leading-relaxed text-slate-400 sm:text-xl md:mb-8">
@@ -93,11 +93,11 @@ export default async function HomePage() {
         ) : null}
       </section>
 
-      <section className="mb-16 md:mb-20">
+      <section className="section-frame mb-16 md:mb-20">
         <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-1 rounded-full bg-cyan-300" />
-            <h2 className="text-3xl font-bold">Top Discounts</h2>
+            <div className="h-8 w-1 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(59,232,255,0.8)]" />
+            <h2 className="text-3xl font-bold text-white text-glow-cyan">Top Discounts</h2>
           </div>
           <Link href="/deals" className="text-sm font-semibold text-cyan-300 hover:underline">
             Browse all deals &rarr;
@@ -141,11 +141,11 @@ export default async function HomePage() {
       </section>
 
       <div className="mb-16 grid grid-cols-1 gap-8 lg:mb-20 lg:gap-12 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="section-frame lg:col-span-2">
           <div className="mb-6 flex items-center justify-between sm:mb-8">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-1 rounded-full bg-white/40" />
-              <h2 className="text-3xl font-bold">Trending Now</h2>
+              <div className="h-8 w-1 rounded-full bg-pink-500 shadow-[0_0_12px_rgba(255,79,216,0.8)]" />
+              <h2 className="text-3xl font-bold text-white text-glow-pink">Trending Now</h2>
             </div>
           </div>
 
@@ -178,11 +178,11 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="lg:col-span-1">
+        <div className="section-frame lg:col-span-1">
           <div className="mb-6 flex items-center justify-between sm:mb-8">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-1 rounded-full bg-cyan-300" />
-              <h2 className="text-3xl font-bold">Freebies</h2>
+              <div className="h-8 w-1 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.8)]" />
+              <h2 className="text-3xl font-bold text-white text-glow-emerald">Freebies</h2>
             </div>
             <Link href="/freebies" className="text-xs font-semibold text-cyan-300 hover:underline">
               See all &rarr;
@@ -218,11 +218,11 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <section className="mb-16 md:mb-20">
+      <section className="section-frame mb-16 md:mb-20">
         <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-1 rounded-full bg-pink-500" />
-            <h2 className="text-3xl font-bold">Gaming Industry News</h2>
+            <div className="h-8 w-1 rounded-full bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.8)]" />
+            <h2 className="text-3xl font-bold text-white text-glow-amber">Gaming Industry News</h2>
           </div>
           <Link href="/news" className="text-sm font-semibold text-cyan-300 hover:underline">
             View all news &rarr;
