@@ -70,6 +70,16 @@ async function main() {
     const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
     if (existing) {
       await prisma.user.update({ where: { id: existing.id }, data: { role: "ADMIN" } });
+      await prisma.notificationPreference.upsert({
+        where: { userId: existing.id },
+        update: {},
+        create: {
+          userId: existing.id,
+          emailEnabled: true,
+          webPushEnabled: false,
+          digestEnabled: false,
+        },
+      });
     }
   }
 }

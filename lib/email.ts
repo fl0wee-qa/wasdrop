@@ -20,7 +20,16 @@ export async function queuePriceAlertNotification(input: {
   const [user, game] = await Promise.all([
     prisma.user.findUnique({
       where: { id: input.userId },
-      select: { id: true, email: true, marketingOptIn: true },
+      select: {
+        id: true,
+        email: true,
+        marketingOptIn: true,
+        notificationPreference: {
+          select: {
+            emailEnabled: true,
+          },
+        },
+      },
     }),
     prisma.game.findUnique({
       where: { id: input.gameId },
@@ -37,6 +46,22 @@ export async function queuePriceAlertNotification(input: {
       data: {
         actorUserId: user.id,
         action: "PRICE_ALERT_NOTIFICATION_SKIPPED_NO_CONSENT",
+        metadataJson: {
+          gameId: input.gameId,
+          targetPriceCents: input.targetPriceCents,
+          country: input.country,
+          currency: input.currency,
+        },
+      },
+    });
+    return;
+  }
+
+  if (user.notificationPreference?.emailEnabled === false) {
+    await prisma.auditLog.create({
+      data: {
+        actorUserId: user.id,
+        action: "PRICE_ALERT_NOTIFICATION_SKIPPED_EMAIL_DISABLED",
         metadataJson: {
           gameId: input.gameId,
           targetPriceCents: input.targetPriceCents,

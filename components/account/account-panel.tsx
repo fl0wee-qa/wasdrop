@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,22 +25,56 @@ type PriceAlert = {
   id: string;
   game?: { title: string } | null;
   targetPriceCents: number;
+  minDiscountPercent?: number | null;
+  notifyOnHistoricalLow: boolean;
+  notifyOnFreebie: boolean;
+  notifyOnNewDeal: boolean;
   country: string;
   currency: string;
+};
+
+type SavedFilter = {
+  id: string;
+  name: string;
+  scope: string;
+  queryJson: Record<string, string | number | boolean | string[]>;
+  isDefault: boolean;
+};
+
+type NotificationEvent = {
+  id: string;
+  type: string;
+  title: string;
+  body?: string | null;
+  linkUrl?: string | null;
+  isRead: boolean;
+  createdAt: string;
 };
 
 export function AccountPanel({ country }: AccountPanelProps) {
   const [wishlist, setWishlist] = useState<WishlistItem[]>([]);
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
+  const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
+  const [notifications, setNotifications] = useState<NotificationEvent[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [status, setStatus] = useState("");
+  const [alertMinDiscount, setAlertMinDiscount] = useState<number | "">("");
+  const [notifyOnHistoricalLow, setNotifyOnHistoricalLow] = useState(false);
+  const [notifyOnFreebie, setNotifyOnFreebie] = useState(false);
+  const [notifyOnNewDeal, setNotifyOnNewDeal] = useState(true);
 
   useEffect(() => {
     void Promise.all([
       fetch("/api/wishlist").then((r) => r.json()),
       fetch("/api/alerts").then((r) => r.json()),
-    ]).then(([wishlistPayload, alertsPayload]) => {
+      fetch("/api/account/saved-filters").then((r) => r.json()),
+      fetch("/api/account/notifications?limit=20").then((r) => r.json()),
+    ]).then(([wishlistPayload, alertsPayload, filtersPayload, notificationsPayload]) => {
       setWishlist(wishlistPayload.items ?? []);
       setAlerts(alertsPayload.alerts ?? []);
+      setSavedFilters(filtersPayload.filters ?? []);
+      setNotifications(notificationsPayload.events ?? []);
+      setUnreadCount(notificationsPayload.unreadCount ?? 0);
     });
   }, []);
 
@@ -50,6 +85,10 @@ export function AccountPanel({ country }: AccountPanelProps) {
       body: JSON.stringify({
         gameId,
         targetPriceCents: target,
+        minDiscountPercent: alertMinDiscount === "" ? undefined : alertMinDiscount,
+        notifyOnHistoricalLow,
+        notifyOnFreebie,
+        notifyOnNewDeal,
         country,
         currency: "USD",
       }),
@@ -63,6 +102,67 @@ export function AccountPanel({ country }: AccountPanelProps) {
     const data = await response.json();
     setAlerts([data.alert, ...alerts]);
     setStatus("Alert created. Email sends only if alerts are enabled in your account settings.");
+  }
+
+  async function deleteAlert(id: string) {
+    const response = await fetch("/api/alerts", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+
+    if (!response.ok) {
+      setStatus("Failed to delete alert");
+      return;
+    }
+
+    setAlerts((prev) => prev.filter((item) => item.id !== id));
+    setStatus("Alert deleted.");
+  }
+
+  async function markAllNotificationsRead() {
+    const response = await fetch("/api/account/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ markAllRead: true }),
+    });
+
+    if (!response.ok) {
+      setStatus("Failed to mark notifications as read.");
+      return;
+    }
+
+    setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
+    setUnreadCount(0);
+    setStatus("Notifications marked as read.");
+  }
+
+  async function deleteSavedFilter(id: string) {
+    const response = await fetch("/api/account/saved-filters", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (!response.ok) {
+      setStatus("Failed to remove saved filter.");
+      return;
+    }
+    setSavedFilters((prev) => prev.filter((item) => item.id !== id));
+    setStatus("Saved filter removed.");
+  }
+
+  async function setDefaultSavedFilter(id: string) {
+    const response = await fetch("/api/account/saved-filters", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, isDefault: true }),
+    });
+    if (!response.ok) {
+      setStatus("Failed to set default filter.");
+      return;
+    }
+    setSavedFilters((prev) => prev.map((item) => ({ ...item, isDefault: item.id === id })));
+    setStatus("Default filter updated.");
   }
 
   async function exportData() {
@@ -95,6 +195,35 @@ export function AccountPanel({ country }: AccountPanelProps) {
           <CardTitle>Wishlist</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          <div className="grid gap-2 rounded-md border border-zinc-800 p-3 text-xs text-zinc-300 sm:grid-cols-2">
+            <label className="flex items-center gap-2">
+              Min discount %
+              <Input
+                type="number"
+                min={0}
+                max={100}
+                value={alertMinDiscount}
+                onChange={(event) => setAlertMinDiscount(event.target.value ? Number(event.target.value) : "")}
+                className="h-8 w-20"
+              />
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={notifyOnHistoricalLow}
+                onChange={(event) => setNotifyOnHistoricalLow(event.target.checked)}
+              />
+              Historical low
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={notifyOnFreebie} onChange={(event) => setNotifyOnFreebie(event.target.checked)} />
+              Freebie
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={notifyOnNewDeal} onChange={(event) => setNotifyOnNewDeal(event.target.checked)} />
+              New deal
+            </label>
+          </div>
           {wishlist.length === 0 ? <p className="text-sm text-zinc-400">No games in wishlist yet.</p> : null}
           {wishlist.map((item) => {
             const bestDeal = item.game.deals?.[0];
@@ -133,10 +262,89 @@ export function AccountPanel({ country }: AccountPanelProps) {
           {alerts.length === 0 ? <p className="text-zinc-400">No active alerts.</p> : null}
           {alerts.map((alert) => (
             <div key={alert.id} className="rounded-md border border-zinc-800 p-3">
-              {alert.game?.title} at {formatMoney(alert.targetPriceCents, alert.country, alert.currency)}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p>
+                  {alert.game?.title} at {formatMoney(alert.targetPriceCents, alert.country, alert.currency)}
+                </p>
+                <Button variant="outline" size="sm" onClick={() => void deleteAlert(alert.id)}>
+                  Remove
+                </Button>
+              </div>
+              <p className="mt-1 text-xs text-zinc-500">
+                {alert.minDiscountPercent ? `Min discount: ${alert.minDiscountPercent}% • ` : ""}
+                {alert.notifyOnHistoricalLow ? "Historical low • " : ""}
+                {alert.notifyOnFreebie ? "Freebie • " : ""}
+                {alert.notifyOnNewDeal ? "New deal" : ""}
+              </p>
             </div>
           ))}
           <p className="text-zinc-400">{status}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Saved Filters</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-zinc-300">
+          {savedFilters.length === 0 ? <p className="text-zinc-400">No saved filters yet. Save one from Deals page.</p> : null}
+          {savedFilters.map((filter) => {
+            const params = new URLSearchParams();
+            for (const [key, value] of Object.entries(filter.queryJson ?? {})) {
+              if (Array.isArray(value)) {
+                for (const item of value) params.append(key, item);
+              } else {
+                params.set(key, String(value));
+              }
+            }
+            return (
+              <div key={filter.id} className="rounded-md border border-zinc-800 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="font-medium">
+                      {filter.name} {filter.isDefault ? <span className="text-xs text-cyan-300">(Default)</span> : null}
+                    </p>
+                    <Link href={`/deals?${params.toString()}`} className="text-xs text-cyan-300 hover:underline">
+                      Open filter
+                    </Link>
+                  </div>
+                  <div className="flex gap-2">
+                    {!filter.isDefault ? (
+                      <Button variant="outline" size="sm" onClick={() => void setDefaultSavedFilter(filter.id)}>
+                        Set default
+                      </Button>
+                    ) : null}
+                    <Button variant="outline" size="sm" onClick={() => void deleteSavedFilter(filter.id)}>
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Notification Center ({unreadCount} unread)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-zinc-300">
+          <Button variant="outline" size="sm" onClick={() => void markAllNotificationsRead()}>
+            Mark all as read
+          </Button>
+          {notifications.length === 0 ? <p className="text-zinc-400">No notifications yet.</p> : null}
+          {notifications.map((item) => (
+            <div key={item.id} className="rounded-md border border-zinc-800 p-3">
+              <p className={`${item.isRead ? "text-zinc-400" : "text-zinc-100"}`}>{item.title}</p>
+              {item.body ? <p className="mt-1 text-xs text-zinc-500">{item.body}</p> : null}
+              {item.linkUrl ? (
+                <Link href={item.linkUrl} className="mt-1 inline-block text-xs text-cyan-300 hover:underline">
+                  Open
+                </Link>
+              ) : null}
+            </div>
+          ))}
         </CardContent>
       </Card>
 

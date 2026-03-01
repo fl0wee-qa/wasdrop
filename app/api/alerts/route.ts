@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { getAuthSession } from "@/lib/auth";
 import { queuePriceAlertNotification } from "@/lib/email";
+import { createNotificationEvent } from "@/lib/notifications";
 import { prisma } from "@/lib/prisma";
 import { getCountryOption } from "@/lib/regions";
 import { recordUserActivity } from "@/lib/services/deals-service";
@@ -10,6 +11,10 @@ import { recordUserActivity } from "@/lib/services/deals-service";
 const createSchema = z.object({
   gameId: z.string().min(1),
   targetPriceCents: z.coerce.number().int().nonnegative(),
+  minDiscountPercent: z.coerce.number().int().min(0).max(100).optional(),
+  notifyOnHistoricalLow: z.boolean().optional(),
+  notifyOnFreebie: z.boolean().optional(),
+  notifyOnNewDeal: z.boolean().optional(),
   country: z.string().length(2),
   currency: z.string().length(3),
 });
@@ -61,6 +66,10 @@ export async function POST(request: Request) {
       userId: session.user.id,
       gameId: parsed.data.gameId,
       targetPriceCents: parsed.data.targetPriceCents,
+      minDiscountPercent: parsed.data.minDiscountPercent,
+      notifyOnHistoricalLow: parsed.data.notifyOnHistoricalLow ?? false,
+      notifyOnFreebie: parsed.data.notifyOnFreebie ?? false,
+      notifyOnNewDeal: parsed.data.notifyOnNewDeal ?? true,
       country: normalizedCountry,
       currency: parsed.data.currency,
       isActive: true,
@@ -79,6 +88,21 @@ export async function POST(request: Request) {
     userId: session.user.id,
     type: "ALERT_CREATE",
     gameId: parsed.data.gameId,
+  });
+
+  await createNotificationEvent({
+    userId: session.user.id,
+    type: "ALERT_CREATED",
+    title: "Price alert created",
+    body: `Target ${(parsed.data.targetPriceCents / 100).toFixed(2)} ${parsed.data.currency} in ${normalizedCountry}.`,
+    linkUrl: "/account",
+    metadataJson: {
+      gameId: parsed.data.gameId,
+      minDiscountPercent: parsed.data.minDiscountPercent ?? null,
+      notifyOnHistoricalLow: parsed.data.notifyOnHistoricalLow ?? false,
+      notifyOnFreebie: parsed.data.notifyOnFreebie ?? false,
+      notifyOnNewDeal: parsed.data.notifyOnNewDeal ?? true,
+    },
   });
 
   return NextResponse.json({ alert });
@@ -109,6 +133,18 @@ export async function DELETE(request: Request) {
     userId: session.user.id,
     type: "ALERT_DELETE",
     gameId: existing.gameId,
+  });
+
+  await createNotificationEvent({
+    userId: session.user.id,
+    type: "ALERT_DELETED",
+    title: "Price alert removed",
+    body: `Alert ${parsed.data.id} was removed.`,
+    linkUrl: "/account",
+    metadataJson: {
+      alertId: parsed.data.id,
+      gameId: existing.gameId,
+    },
   });
 
   return NextResponse.json({ success: true });

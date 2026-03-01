@@ -8,6 +8,9 @@ import { getCountryOption } from "@/lib/regions";
 const settingsSchema = z.object({
   preferredCountry: z.string().length(2).optional(),
   marketingOptIn: z.boolean().optional(),
+  emailEnabled: z.boolean().optional(),
+  webPushEnabled: z.boolean().optional(),
+  digestEnabled: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -29,6 +32,13 @@ export async function GET() {
           provider: true,
         },
       },
+      notificationPreference: {
+        select: {
+          emailEnabled: true,
+          webPushEnabled: true,
+          digestEnabled: true,
+        },
+      },
     },
   });
 
@@ -48,6 +58,11 @@ export async function GET() {
     email: user.email,
     preferredCountry: getCountryOption(user.preferredCountry).code,
     marketingOptIn: user.marketingOptIn,
+    notificationPreferences: {
+      emailEnabled: user.notificationPreference?.emailEnabled ?? true,
+      webPushEnabled: user.notificationPreference?.webPushEnabled ?? false,
+      digestEnabled: user.notificationPreference?.digestEnabled ?? false,
+    },
     providers: [...providers],
   });
 }
@@ -65,6 +80,7 @@ export async function PATCH(request: Request) {
 
   const payload = parsed.data;
   const data: { preferredCountry?: string; marketingOptIn?: boolean } = {};
+  const preferenceData: { emailEnabled?: boolean; webPushEnabled?: boolean; digestEnabled?: boolean } = {};
 
   if (payload.preferredCountry) {
     data.preferredCountry = getCountryOption(payload.preferredCountry).code;
@@ -72,14 +88,54 @@ export async function PATCH(request: Request) {
   if (typeof payload.marketingOptIn === "boolean") {
     data.marketingOptIn = payload.marketingOptIn;
   }
+  if (typeof payload.emailEnabled === "boolean") {
+    preferenceData.emailEnabled = payload.emailEnabled;
+  }
+  if (typeof payload.webPushEnabled === "boolean") {
+    preferenceData.webPushEnabled = payload.webPushEnabled;
+  }
+  if (typeof payload.digestEnabled === "boolean") {
+    preferenceData.digestEnabled = payload.digestEnabled;
+  }
 
-  const updated = await prisma.user.update({
-    where: { id: session.user.id },
-    data,
-    select: {
-      preferredCountry: true,
-      marketingOptIn: true,
-    },
+  const updated = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.update({
+      where: { id: session.user.id },
+      data,
+      select: {
+        preferredCountry: true,
+        marketingOptIn: true,
+      },
+    });
+
+    if (Object.keys(preferenceData).length > 0) {
+      await tx.notificationPreference.upsert({
+        where: { userId: session.user.id },
+        update: preferenceData,
+        create: {
+          userId: session.user.id,
+          ...preferenceData,
+        },
+      });
+    }
+
+    const preferences = await tx.notificationPreference.findUnique({
+      where: { userId: session.user.id },
+      select: {
+        emailEnabled: true,
+        webPushEnabled: true,
+        digestEnabled: true,
+      },
+    });
+
+    return {
+      ...user,
+      notificationPreferences: {
+        emailEnabled: preferences?.emailEnabled ?? true,
+        webPushEnabled: preferences?.webPushEnabled ?? false,
+        digestEnabled: preferences?.digestEnabled ?? false,
+      },
+    };
   });
 
   await prisma.auditLog.create({
@@ -89,6 +145,7 @@ export async function PATCH(request: Request) {
       metadataJson: {
         preferredCountry: updated.preferredCountry,
         marketingOptIn: updated.marketingOptIn,
+        notificationPreferences: updated.notificationPreferences,
       },
     },
   });
@@ -96,5 +153,6 @@ export async function PATCH(request: Request) {
   return NextResponse.json({
     preferredCountry: updated.preferredCountry,
     marketingOptIn: updated.marketingOptIn,
+    notificationPreferences: updated.notificationPreferences,
   });
 }

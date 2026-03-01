@@ -12,6 +12,11 @@ enum Role {
   ADMIN
 }
 
+enum DealSourceType {
+  OFFICIAL
+  KEYSHOP
+}
+
 enum JobStatus {
   PENDING
   RUNNING
@@ -46,6 +51,9 @@ model User {
   sessions      Session[]
   wishlistItems WishlistItem[]
   priceAlerts   PriceAlert[]
+  savedFilters  SavedFilter[]
+  notifications NotificationEvent[]
+  notificationPreference NotificationPreference?
   auditLogs     AuditLog[]       @relation("AuditActor")
   activity      UserActivity[]
 }
@@ -138,6 +146,8 @@ model Deal {
   id                 String   @id @default(cuid())
   gameId             String
   storeId            Int
+  sourceType         DealSourceType @default(OFFICIAL)
+  trustScore         Int      @default(80)
   country            String
   currency           String
   priceCents         Int
@@ -154,6 +164,7 @@ model Deal {
   @@unique([gameId, storeId, country])
   @@index([country, discountPercent])
   @@index([country, priceCents])
+  @@index([country, sourceType])
 }
 
 model PriceSnapshot {
@@ -191,6 +202,11 @@ model PriceAlert {
   userId           String
   gameId           String
   targetPriceCents Int
+  minDiscountPercent Int?
+  notifyOnHistoricalLow Boolean @default(false)
+  notifyOnFreebie   Boolean @default(false)
+  notifyOnNewDeal   Boolean @default(true)
+  lastNotifiedAt    DateTime?
   country          String
   currency         String
   isActive         Boolean  @default(true)
@@ -200,6 +216,54 @@ model PriceAlert {
   game Game @relation(fields: [gameId], references: [id], onDelete: Cascade)
 
   @@index([userId, isActive])
+}
+
+model SavedFilter {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  scope     String   @default("deals")
+  queryJson Json
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, scope])
+  @@unique([userId, scope, name])
+}
+
+model NotificationPreference {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  emailEnabled    Boolean  @default(true)
+  webPushEnabled  Boolean  @default(false)
+  digestEnabled   Boolean  @default(false)
+  digestFrequency String?
+  quietHoursStart Int?
+  quietHoursEnd   Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model NotificationEvent {
+  id           String   @id @default(cuid())
+  userId       String
+  type         String
+  title        String
+  body         String?
+  linkUrl      String?
+  metadataJson Json?
+  isRead       Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([userId, isRead, createdAt])
 }
 
 model NewsSource {

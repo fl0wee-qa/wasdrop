@@ -30,8 +30,19 @@ Persists country in cookie and user profile (if logged in).
 
 ### `GET|POST|DELETE /api/alerts`
 - `GET`: returns current user alerts.
-- `POST`: body `{ gameId, targetPriceCents, country, currency }`.
+- `POST`: body `{ gameId, targetPriceCents, country, currency, minDiscountPercent?, notifyOnHistoricalLow?, notifyOnFreebie?, notifyOnNewDeal? }`.
 - `DELETE`: body `{ id }`.
+
+### `GET|POST|PATCH|DELETE /api/account/saved-filters`
+- `GET`: returns saved filter presets for authenticated user.
+- `POST`: body `{ name, scope, query, isDefault? }`.
+- `PATCH`: body `{ id, name?, isDefault? }`.
+- `DELETE`: body `{ id }`.
+
+### `GET|PATCH|DELETE /api/account/notifications`
+- `GET`: query `?limit=20` returns `{ events, unreadCount }`.
+- `PATCH`: body `{ id? , markAllRead? }`.
+- `DELETE`: body `{ id? , clearRead? }`.
 
 ### `GET /api/account/export`
 Returns GDPR export payload for authenticated user.
@@ -41,7 +52,7 @@ Deletes authenticated user and related records.
 
 ### `GET|PATCH /api/account/settings`
 - `GET`: returns email, providers, `preferredCountry`, `marketingOptIn`.
-- `PATCH`: body `{ preferredCountry?, marketingOptIn? }`.
+- `PATCH`: body `{ preferredCountry?, marketingOptIn?, emailEnabled?, webPushEnabled?, digestEnabled? }`.
 
 ## AI
 

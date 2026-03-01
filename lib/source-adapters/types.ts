@@ -23,6 +23,8 @@ export type AdapterDeal = {
   startAt?: Date | null;
   endAt?: Date | null;
   isFreebie?: boolean;
+  sourceType?: "OFFICIAL" | "KEYSHOP";
+  trustScore?: number;
   metadata?: Record<string, unknown>;
 };
 

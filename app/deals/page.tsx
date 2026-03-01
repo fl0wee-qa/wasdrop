@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { DealCard } from "@/components/deals/deal-card";
+import { SaveFilterButton } from "@/components/deals/save-filter-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,32 @@ function toNumber(value?: string) {
   return Number.isNaN(parsed) ? undefined : parsed;
 }
 
+function buildDealsHref(params: {
+  search?: string;
+  sort?: string;
+  page: number;
+  stores: string[];
+  minDiscount?: number;
+  minPrice?: string;
+  maxPrice?: string;
+  sourceType?: string;
+  minTrustScore?: number;
+}) {
+  const query = new URLSearchParams();
+  if (params.search) query.set("search", params.search);
+  if (params.sort) query.set("sort", params.sort);
+  query.set("page", String(params.page));
+  if (typeof params.minDiscount === "number") query.set("minDiscount", String(params.minDiscount));
+  if (params.minPrice) query.set("minPrice", params.minPrice);
+  if (params.maxPrice) query.set("maxPrice", params.maxPrice);
+  if (params.sourceType && params.sourceType !== "ALL") query.set("sourceType", params.sourceType);
+  if (typeof params.minTrustScore === "number") query.set("minTrustScore", String(params.minTrustScore));
+  for (const store of params.stores) {
+    query.append("store", store);
+  }
+  return `/deals?${query.toString()}`;
+}
+
 export default async function DealsPage({ searchParams }: { searchParams: SearchParams }) {
   const params = await searchParams;
   const session = await getAuthSession();
@@ -37,6 +64,9 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
   const sort = typeof params.sort === "string" ? params.sort : "discount";
   const page = toNumber(typeof params.page === "string" ? params.page : undefined) ?? 1;
   const minDiscount = toNumber(typeof params.minDiscount === "string" ? params.minDiscount : undefined);
+  const minTrustScore = toNumber(typeof params.minTrustScore === "string" ? params.minTrustScore : undefined);
+  const sourceTypeRaw = typeof params.sourceType === "string" ? params.sourceType : "ALL";
+  const sourceType = ["ALL", "OFFICIAL", "KEYSHOP"].includes(sourceTypeRaw) ? sourceTypeRaw : "ALL";
   const sortValue: DealFilters["sort"] = ["discount", "latest", "price_asc", "price_desc"].includes(sort)
     ? (sort as DealFilters["sort"])
     : "discount";
@@ -45,14 +75,27 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
     country,
     search,
     stores,
+    sourceType: sourceType as DealFilters["sourceType"],
     sort: sortValue,
     page,
     minDiscount,
+    minTrustScore,
     minPriceCents: toNumber(typeof params.minPrice === "string" ? params.minPrice : undefined),
     maxPriceCents: toNumber(typeof params.maxPrice === "string" ? params.maxPrice : undefined),
   });
 
   const availableStores = await prisma.store.findMany({ orderBy: { name: "asc" } });
+  const saveQuery: Record<string, string | number | boolean | string[]> = {
+    search,
+    sort,
+    page: 1,
+    ...(stores.length ? { store: stores } : {}),
+    ...(typeof minDiscount === "number" ? { minDiscount } : {}),
+    ...(typeof minTrustScore === "number" ? { minTrustScore } : {}),
+    ...(typeof params.minPrice === "string" ? { minPrice: params.minPrice } : {}),
+    ...(typeof params.maxPrice === "string" ? { maxPrice: params.maxPrice } : {}),
+    ...(sourceType !== "ALL" ? { sourceType } : {}),
+  };
 
   return (
     <div className="space-y-6">
@@ -66,6 +109,14 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
           <form className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-6">
             <Input name="search" defaultValue={search} placeholder="Search games" className="sm:col-span-2 lg:col-span-2" />
             <Input name="minDiscount" type="number" min={0} max={100} defaultValue={minDiscount} placeholder="Min %" />
+            <Input
+              name="minTrustScore"
+              type="number"
+              min={0}
+              max={100}
+              defaultValue={minTrustScore}
+              placeholder="Min trust"
+            />
             <Input name="minPrice" type="number" min={0} defaultValue={params.minPrice as string} placeholder="Min cents" />
             <Input name="maxPrice" type="number" min={0} defaultValue={params.maxPrice as string} placeholder="Max cents" />
             <select
@@ -77,6 +128,15 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
               <option value="latest">Trending</option>
               <option value="price_asc">Price low to high</option>
               <option value="price_desc">Price high to low</option>
+            </select>
+            <select
+              name="sourceType"
+              defaultValue={sourceType}
+              className="h-10 rounded-md border border-zinc-700 bg-zinc-950 px-3 text-sm text-zinc-100"
+            >
+              <option value="ALL">All sources</option>
+              <option value="OFFICIAL">Official stores</option>
+              <option value="KEYSHOP">Keyshops</option>
             </select>
 
             <div className="sm:col-span-2 lg:col-span-6">
@@ -96,6 +156,7 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
             <Button type="submit" className="w-full sm:w-fit">
               Apply filters
             </Button>
+            <SaveFilterButton enabled={Boolean(session?.user?.id)} query={saveQuery} />
           </form>
         </CardContent>
       </Card>
@@ -113,17 +174,34 @@ export default async function DealsPage({ searchParams }: { searchParams: Search
         <div className="flex gap-2">
           <Button asChild variant="outline" size="sm" disabled={dealsData.page <= 1}>
             <Link
-              href={`/deals?search=${encodeURIComponent(search)}&sort=${sort}&page=${Math.max(1, dealsData.page - 1)}`}
+              href={buildDealsHref({
+                search,
+                sort,
+                page: Math.max(1, dealsData.page - 1),
+                stores,
+                minDiscount: minDiscount ?? undefined,
+                minPrice: typeof params.minPrice === "string" ? params.minPrice : undefined,
+                maxPrice: typeof params.maxPrice === "string" ? params.maxPrice : undefined,
+                sourceType,
+                minTrustScore: minTrustScore ?? undefined,
+              })}
             >
               Previous
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm" disabled={dealsData.page >= dealsData.totalPages}>
             <Link
-              href={`/deals?search=${encodeURIComponent(search)}&sort=${sort}&page=${Math.min(
-                dealsData.totalPages,
-                dealsData.page + 1,
-              )}`}
+              href={buildDealsHref({
+                search,
+                sort,
+                page: Math.min(dealsData.totalPages, dealsData.page + 1),
+                stores,
+                minDiscount: minDiscount ?? undefined,
+                minPrice: typeof params.minPrice === "string" ? params.minPrice : undefined,
+                maxPrice: typeof params.maxPrice === "string" ? params.maxPrice : undefined,
+                sourceType,
+                minTrustScore: minTrustScore ?? undefined,
+              })}
             >
               Next
             </Link>

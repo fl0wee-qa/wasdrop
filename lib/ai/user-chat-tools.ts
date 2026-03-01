@@ -12,6 +12,7 @@ export const userChatTools = [
         properties: {
           query: { type: "string" },
           store: { type: "string", description: "Store slug, e.g. steam, epic-games-store" },
+          sourceType: { type: "string", description: "OFFICIAL or KEYSHOP" },
           maxPriceCents: { type: "number" },
           minDiscountPercent: { type: "number" },
           onlyFreebies: { type: "boolean" },
@@ -72,6 +73,10 @@ export async function runUserToolCall(input: {
     const country = getCountryOption((args.country as string | undefined) ?? input.defaultCountry).code;
     const query = typeof args.query === "string" ? args.query : undefined;
     const store = typeof args.store === "string" ? args.store : undefined;
+    const sourceType =
+      typeof args.sourceType === "string" && ["OFFICIAL", "KEYSHOP"].includes(args.sourceType)
+        ? (args.sourceType as "OFFICIAL" | "KEYSHOP")
+        : undefined;
     const maxPriceCents = Number(args.maxPriceCents);
     const minDiscountPercent = Number(args.minDiscountPercent);
     const onlyFreebies = Boolean(args.onlyFreebies);
@@ -90,6 +95,7 @@ export async function runUserToolCall(input: {
             }
           : {}),
         ...(store ? { store: { slug: store } } : {}),
+        ...(sourceType ? { sourceType } : {}),
         ...(Number.isFinite(maxPriceCents) ? { priceCents: { lte: maxPriceCents } } : {}),
         ...(Number.isFinite(minDiscountPercent) ? { discountPercent: { gte: minDiscountPercent } } : {}),
         ...(onlyFreebies ? { priceCents: 0 } : {}),
@@ -122,6 +128,8 @@ export async function runUserToolCall(input: {
         priceCents: item.priceCents,
         originalPriceCents: item.originalPriceCents,
         discountPercent: item.discountPercent,
+        sourceType: item.sourceType,
+        trustScore: item.trustScore,
         currency: item.currency,
         url: item.url,
       })),
@@ -149,6 +157,8 @@ export async function runUserToolCall(input: {
         priceCents: item.priceCents,
         originalPriceCents: item.originalPriceCents,
         discountPercent: item.discountPercent,
+        sourceType: item.sourceType,
+        trustScore: item.trustScore,
         currency: item.currency,
       })),
     };

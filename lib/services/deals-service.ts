@@ -1,5 +1,5 @@
 import { subDays } from "date-fns";
-import { Prisma } from "@prisma/client";
+import { Prisma, type DealSourceType } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 import { getCountryOption } from "@/lib/regions";
@@ -12,7 +12,9 @@ export type DealFilters = {
   country: string;
   search?: string;
   stores?: string[];
+  sourceType?: DealSourceType | "ALL";
   minDiscount?: number;
+  minTrustScore?: number;
   minPriceCents?: number;
   maxPriceCents?: number;
   sort?: "discount" | "price_asc" | "price_desc" | "latest";
@@ -115,6 +117,8 @@ async function upsertDeal(country: string, row: AdapterDeal) {
       },
     },
     update: {
+      sourceType: row.sourceType ?? "OFFICIAL",
+      trustScore: Math.max(0, Math.min(100, row.trustScore ?? 80)),
       currency: row.currency,
       priceCents: row.priceCents,
       originalPriceCents: row.originalPriceCents,
@@ -127,6 +131,8 @@ async function upsertDeal(country: string, row: AdapterDeal) {
     create: {
       gameId: game.id,
       storeId: store.id,
+      sourceType: row.sourceType ?? "OFFICIAL",
+      trustScore: Math.max(0, Math.min(100, row.trustScore ?? 80)),
       country,
       currency: row.currency,
       priceCents: row.priceCents,
@@ -251,6 +257,8 @@ export async function getDeals(filters: DealFilters) {
 
   const where = {
     country,
+    ...(filters.sourceType && filters.sourceType !== "ALL" ? { sourceType: filters.sourceType } : {}),
+    ...(typeof filters.minTrustScore === "number" ? { trustScore: { gte: filters.minTrustScore } } : {}),
     ...(filters.minDiscount ? { discountPercent: { gte: filters.minDiscount } } : {}),
     ...(typeof filters.minPriceCents === "number" || typeof filters.maxPriceCents === "number"
       ? {

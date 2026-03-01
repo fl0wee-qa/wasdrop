@@ -9,7 +9,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [user, wishlist, alerts, activity] = await Promise.all([
+  const [user, wishlist, alerts, activity, savedFilters, notifications, notificationPreferences] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -27,6 +27,9 @@ export async function GET() {
     prisma.wishlistItem.findMany({ where: { userId: session.user.id }, include: { game: true } }),
     prisma.priceAlert.findMany({ where: { userId: session.user.id }, include: { game: true } }),
     prisma.userActivity.findMany({ where: { userId: session.user.id }, orderBy: { createdAt: "desc" }, take: 100 }),
+    prisma.savedFilter.findMany({ where: { userId: session.user.id }, orderBy: { createdAt: "desc" } }),
+    prisma.notificationEvent.findMany({ where: { userId: session.user.id }, orderBy: { createdAt: "desc" }, take: 200 }),
+    prisma.notificationPreference.findUnique({ where: { userId: session.user.id } }),
   ]);
 
   return NextResponse.json({
@@ -35,5 +38,8 @@ export async function GET() {
     wishlist,
     alerts,
     activity,
+    savedFilters,
+    notifications,
+    notificationPreferences,
   });
 }

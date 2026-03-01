@@ -17,6 +17,13 @@ export default async function AccountPage() {
             provider: true,
           },
         },
+        notificationPreference: {
+          select: {
+            emailEnabled: true,
+            webPushEnabled: true,
+            digestEnabled: true,
+          },
+        },
       },
     }),
     prisma.userActivity.findMany({
@@ -33,6 +40,11 @@ export default async function AccountPage() {
         email={user?.email ?? null}
         preferredCountry={getCountryOption(user?.preferredCountry).code}
         marketingOptIn={user?.marketingOptIn ?? false}
+        notificationPreferences={{
+          emailEnabled: user?.notificationPreference?.emailEnabled ?? true,
+          webPushEnabled: user?.notificationPreference?.webPushEnabled ?? false,
+          digestEnabled: user?.notificationPreference?.digestEnabled ?? false,
+        }}
         providers={[
           ...(user?.passwordHash ? ["credentials"] : []),
           ...(user?.steamId ? ["steam"] : []),

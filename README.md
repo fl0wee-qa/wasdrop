@@ -92,14 +92,17 @@ Current adapters:
 - Deal filters/search/sort/pagination.
 - Game detail with images, pricing, system requirements, snapshots chart.
 - Wishlist + price alerts persisted in DB.
+- Advanced alert options (min discount, historical low/freebie/new-deal flags).
 - Credentials auth (email/password + bcrypt hash), Google OAuth, Steam OpenID, and auth endpoint rate limiting.
 - Account settings with connected providers, persisted region preference, and `marketingOptIn`.
+- Saved filter presets and account notification center.
 - Consent-based emails: sends only when `marketingOptIn=true`.
 - RSS news ingestion with dedupe.
 - NextAuth with Google + Steam OpenID bridge.
 - Admin curation/news source management + manual job triggers.
 - User AI chat grounded on DB deals/news via tool calling.
 - Admin AI assistant with human-in-the-loop proposals + explicit apply + `AuditLog`.
+- Deals source typing + trust score (`OFFICIAL|KEYSHOP`) with filter support.
 - Job tracking and cron endpoints.
 - GDPR account export + delete.
 

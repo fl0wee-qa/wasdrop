@@ -85,11 +85,19 @@ function buildStoreSlug(name: string) {
     .replace(/\s+/g, "-");
 }
 
+function estimateTrustScore(storeSlug: string) {
+  if (storeSlug.includes("steam")) return 98;
+  if (storeSlug.includes("epic")) return 96;
+  if (storeSlug.includes("microsoft")) return 94;
+  return 85;
+}
+
 function toDeal(country: string, currency: string, storeName: string, row: CheapSharkDeal): AdapterDeal {
   const salePrice = Math.round(Number(row.salePrice) * 100);
   const normalPrice = Math.round(Number(row.normalPrice) * 100);
   const releaseDate = row.releaseDate ? new Date(row.releaseDate * 1000) : null;
 
+  const storeSlug = buildStoreSlug(storeName);
   return {
     externalGameId: row.gameID,
     title: row.title,
@@ -98,8 +106,10 @@ function toDeal(country: string, currency: string, storeName: string, row: Cheap
     screenshots: [],
     store: {
       name: storeName,
-      slug: buildStoreSlug(storeName),
+      slug: storeSlug,
     },
+    sourceType: "OFFICIAL",
+    trustScore: estimateTrustScore(storeSlug),
     country,
     currency,
     priceCents: salePrice,

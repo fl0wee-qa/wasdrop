@@ -11,6 +11,8 @@ type DealCardProps = {
     originalPriceCents: number;
     country: string;
     currency: string;
+    sourceType: "OFFICIAL" | "KEYSHOP";
+    trustScore: number;
     url: string;
     game: {
       id: string;
@@ -43,7 +45,15 @@ export function DealCard({ deal }: DealCardProps) {
           <Link href={`/game/${deal.game.slug}`} className="line-clamp-1 text-lg font-bold hover:text-cyan-300">
             {deal.game.title}
           </Link>
-          <p className="text-xs text-slate-400">{deal.store.name}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+            <span>{deal.store.name}</span>
+            <span className="rounded border border-zinc-700 px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-zinc-300">
+              {deal.sourceType === "OFFICIAL" ? "Official" : "Keyshop"}
+            </span>
+            <span className="rounded border border-cyan-400/30 px-1.5 py-0.5 text-[10px] text-cyan-300">
+              Trust {deal.trustScore}
+            </span>
+          </div>
         </div>
         <div className="flex items-center justify-between gap-3">
           <div>

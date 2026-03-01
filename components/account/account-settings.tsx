@@ -11,6 +11,11 @@ type AccountSettingsProps = {
   email: string | null;
   preferredCountry: string;
   marketingOptIn: boolean;
+  notificationPreferences: {
+    emailEnabled: boolean;
+    webPushEnabled: boolean;
+    digestEnabled: boolean;
+  };
   providers: string[];
 };
 
@@ -20,14 +25,29 @@ const providerLabels: Record<string, string> = {
   steam: "Steam",
 };
 
-export function AccountSettings({ email, preferredCountry, marketingOptIn, providers }: AccountSettingsProps) {
+export function AccountSettings({
+  email,
+  preferredCountry,
+  marketingOptIn,
+  notificationPreferences,
+  providers,
+}: AccountSettingsProps) {
   const [country, setCountry] = useState(getCountryOption(preferredCountry).code);
   const [optIn, setOptIn] = useState(marketingOptIn);
+  const [emailEnabled, setEmailEnabled] = useState(notificationPreferences.emailEnabled);
+  const [webPushEnabled, setWebPushEnabled] = useState(notificationPreferences.webPushEnabled);
+  const [digestEnabled, setDigestEnabled] = useState(notificationPreferences.digestEnabled);
   const [status, setStatus] = useState("");
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
-  async function save(next: { preferredCountry?: string; marketingOptIn?: boolean }) {
+  async function save(next: {
+    preferredCountry?: string;
+    marketingOptIn?: boolean;
+    emailEnabled?: boolean;
+    webPushEnabled?: boolean;
+    digestEnabled?: boolean;
+  }) {
     setStatus("Saving...");
     const response = await fetch("/api/account/settings", {
       method: "PATCH",
@@ -106,6 +126,52 @@ export function AccountSettings({ email, preferredCountry, marketingOptIn, provi
           />
           <span>Receive email alerts / newsletter</span>
         </label>
+
+        <div className="space-y-2 rounded-md border border-zinc-800 p-3">
+          <p className="text-zinc-100">Notification Preferences</p>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={emailEnabled}
+              onChange={(event) => {
+                const next = event.target.checked;
+                setEmailEnabled(next);
+                void save({ emailEnabled: next });
+              }}
+              className="mt-1"
+              disabled={pending}
+            />
+            <span>Email notifications</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={webPushEnabled}
+              onChange={(event) => {
+                const next = event.target.checked;
+                setWebPushEnabled(next);
+                void save({ webPushEnabled: next });
+              }}
+              className="mt-1"
+              disabled={pending}
+            />
+            <span>Web push notifications (UI preference placeholder)</span>
+          </label>
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={digestEnabled}
+              onChange={(event) => {
+                const next = event.target.checked;
+                setDigestEnabled(next);
+                void save({ digestEnabled: next });
+              }}
+              className="mt-1"
+              disabled={pending}
+            />
+            <span>Digest mode (batch notifications)</span>
+          </label>
+        </div>
 
         <p className="text-xs text-zinc-500">{status}</p>
       </CardContent>
