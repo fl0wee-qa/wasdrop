@@ -29,110 +29,119 @@ export default async function HomePage() {
   const country = await resolveCountry(session?.user?.id);
 
   const [featuredDeals, trendingDeals, freebies, latestNews] = await Promise.all([
-    getFeaturedDeals(country, 8),
+    getFeaturedDeals(country, 9),
     getTrendingDeals(country, 8),
     getFreebies(country, 6),
     getLatestNews(3),
   ]);
 
   const heroDeal = featuredDeals[0] ?? trendingDeals[0] ?? freebies[0] ?? null;
-  const topDiscounts = featuredDeals.slice(0, 4);
-  const trendingList = trendingDeals.slice(0, 3);
-  const freebiesList = freebies.slice(0, 2);
+  const heroGrid = featuredDeals.slice(1, 5);
+  const trendingList = trendingDeals.slice(0, 4);
+  const freebiesList = freebies.slice(0, 3);
   const newsList = latestNews.slice(0, 3);
-  const totalSavings = topDiscounts.reduce((sum, deal) => sum + Math.max(0, deal.originalPriceCents - deal.priceCents), 0);
+  const totalSavings = featuredDeals.reduce((sum, deal) => sum + Math.max(0, deal.originalPriceCents - deal.priceCents), 0);
 
   return (
-    <div className="mx-auto max-w-7xl px-0 pb-16 md:pb-20">
-      <section className="hero-shell mb-16 flex flex-col items-center justify-between gap-8 text-center md:mb-20 md:flex-row md:gap-12 md:text-left">
-        <div className="max-w-2xl">
-          <h1 className="mb-5 text-5xl font-extrabold leading-none tracking-tight sm:text-6xl md:mb-6 md:text-7xl text-glow-cyan text-white">
-            Premium Gaming Deals and News
-          </h1>
-          <p className="mb-6 text-base leading-relaxed text-slate-400 sm:text-xl md:mb-8">
-            The ultimate aggregator for PC game discounts, verified freebies, and critical industry updates. Do not just
-            play, play for less.
-          </p>
-          <div className="flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap sm:gap-4 md:justify-start">
-            <Button asChild className="w-full px-8 py-3 font-bold sm:w-auto">
-              <Link href="/deals">Browse All Deals</Link>
-            </Button>
-            <Button asChild variant="secondary" className="w-full px-8 py-3 font-semibold sm:w-auto">
-              <Link href={session?.user ? "/account" : "/auth/sign-in"}>
-                {session?.user ? "Open Account" : "Join Community"}
-              </Link>
-            </Button>
-          </div>
+    <div className="space-y-8 md:space-y-10">
+      <section className="hero-shell surface-card relative overflow-hidden border border-white/10 p-5 md:p-8">
+        <div className="mb-5 flex flex-wrap gap-2">
+          <span className="zone-badge">Terraria</span>
+          <span className="zone-badge">Cyberpunk</span>
+          <span className="zone-badge">Shooter</span>
+          <span className="zone-badge">Adventure</span>
+          <span className="zone-badge">Mythic</span>
         </div>
 
-        {heroDeal ? (
-          <div className="glass-panel w-full overflow-hidden p-2 md:w-[400px]">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-xl">
-              <Image
-                src={coverUrl(heroDeal.game.images)}
-                alt={heroDeal.game.title}
-                fill
-                className="image-zoom object-cover opacity-60"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f16] via-transparent to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6">
-                <span className="badge-discount mb-3 inline-block">TRENDING NOW</span>
-                <h3 className="mb-2 text-2xl font-bold">{heroDeal.game.title}</h3>
-                <p className="mb-4 text-sm text-slate-300">{heroDeal.store.name} live discount in {country}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-cyan-300">
-                    {formatMoney(heroDeal.priceCents, heroDeal.country, heroDeal.currency)}
-                  </span>
-                  <Button asChild size="icon" variant="secondary" className="rounded-full">
-                    <Link href={`/game/${heroDeal.game.slug}`}>+</Link>
-                  </Button>
-                </div>
-              </div>
+        <div className="grid gap-6 lg:grid-cols-[1.25fr_1fr]">
+          <div className="space-y-5">
+            <h1 className="hero-title text-white">
+              WASDrop
+              <span className="block text-cyan-300 text-glow-cyan">Find Better Deals Faster</span>
+            </h1>
+            <p className="max-w-2xl text-base text-slate-300 md:text-lg">
+              One feed for major PC stores, region-aware pricing, freebies, and gamer-focused news. Built to hunt deals,
+              not noise.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <Button asChild className="bg-cyan-400 px-6 font-black text-black hover:bg-cyan-300">
+                <Link href="/deals">Browse Deals</Link>
+              </Button>
+              <Button asChild variant="secondary" className="px-6 font-semibold">
+                <Link href={session?.user ? "/account" : "/auth/sign-in"}>
+                  {session?.user ? "Open Account" : "Sign In"}
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="border-white/20 bg-black/40 px-6 text-white hover:bg-white/10">
+                <Link href="/news">Read News</Link>
+              </Button>
+            </div>
+            <div className="hud-strip inline-flex items-center gap-3 px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-300">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+              Live updates enabled
+              <span className="text-zinc-500">|</span>
+              Savings tracked: <span className="text-cyan-300">{formatMoney(totalSavings, country)}</span>
             </div>
           </div>
-        ) : null}
+
+          {heroDeal ? (
+            <article className="glass-panel relative overflow-hidden p-3">
+              <div className="relative aspect-[16/10] overflow-hidden rounded-xl">
+                <Image src={coverUrl(heroDeal.game.images)} alt={heroDeal.game.title} fill className="image-zoom object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="mb-1 text-xs font-bold uppercase tracking-widest text-cyan-300">Featured Deal</p>
+                  <h2 className="line-clamp-2 text-2xl font-black text-white">{heroDeal.game.title}</h2>
+                  <div className="mt-3 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-xs text-zinc-400">{heroDeal.store.name}</p>
+                      <p className="text-2xl font-black text-white">
+                        {formatMoney(heroDeal.priceCents, heroDeal.country, heroDeal.currency)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="badge-discount inline-block">-{heroDeal.discountPercent}%</span>
+                      <p className="mt-1 text-xs text-zinc-500 line-through">
+                        {formatMoney(heroDeal.originalPriceCents, heroDeal.country, heroDeal.currency)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ) : null}
+        </div>
       </section>
 
-      <section className="section-frame mb-16 md:mb-20">
-        <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-1 rounded-full bg-cyan-400 shadow-[0_0_12px_rgba(59,232,255,0.8)]" />
-            <h2 className="text-3xl font-bold text-white text-glow-cyan">Top Discounts</h2>
-          </div>
+      <section className="section-frame">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <h2 className="text-2xl font-black text-white md:text-3xl">Top Discounts</h2>
           <Link href="/deals" className="text-sm font-semibold text-cyan-300 hover:underline">
-            Browse all deals &rarr;
+            View all
           </Link>
         </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {topDiscounts.map((deal) => (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {heroGrid.map((deal) => (
             <article key={deal.id} className="glass-panel group overflow-hidden">
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-40 overflow-hidden">
                 <Image src={coverUrl(deal.game.images)} alt={deal.game.title} fill className="image-zoom object-cover" />
-                <div className="absolute right-4 top-4">
+                <div className="absolute right-3 top-3">
                   <span className="badge-discount">-{deal.discountPercent}%</span>
                 </div>
               </div>
-              <div className="p-5">
-                <h3 className="mb-1 truncate text-lg font-bold">{deal.game.title}</h3>
-                <p className="mb-4 text-sm text-slate-400">{deal.store.name}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-slate-500 line-through">
+              <div className="space-y-2 p-4">
+                <h3 className="line-clamp-1 text-lg font-bold text-white">{deal.game.title}</h3>
+                <p className="text-xs uppercase tracking-wide text-zinc-400">{deal.store.name}</p>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-xs text-zinc-500 line-through">
                       {formatMoney(deal.originalPriceCents, deal.country, deal.currency)}
-                    </span>
-                    <span className="text-xl font-bold text-white">{formatMoney(deal.priceCents, deal.country, deal.currency)}</span>
+                    </p>
+                    <p className="text-xl font-black text-white">{formatMoney(deal.priceCents, deal.country, deal.currency)}</p>
                   </div>
-                  <a
-                    href={deal.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-300/10 text-cyan-300 transition group-hover:bg-cyan-300 group-hover:text-black"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 100-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
-                    </svg>
-                  </a>
+                  <Link href={`/game/${deal.game.slug}`} className="text-xs font-semibold text-cyan-300 hover:underline">
+                    Details
+                  </Link>
                 </div>
               </div>
             </article>
@@ -140,133 +149,82 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <div className="mb-16 grid grid-cols-1 gap-8 lg:mb-20 lg:gap-12 lg:grid-cols-3">
-        <div className="section-frame lg:col-span-2">
-          <div className="mb-6 flex items-center justify-between sm:mb-8">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-1 rounded-full bg-pink-500 shadow-[0_0_12px_rgba(255,79,216,0.8)]" />
-              <h2 className="text-3xl font-bold text-white text-glow-pink">Trending Now</h2>
-            </div>
-          </div>
-
-          <div className="space-y-4">
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="section-frame lg:col-span-2">
+          <h2 className="mb-4 text-2xl font-black text-white md:text-3xl">Trending Right Now</h2>
+          <div className="space-y-3">
             {trendingList.map((deal) => (
-              <Link
-                key={deal.id}
-                href={`/game/${deal.game.slug}`}
-                className="glass-panel group flex items-start gap-3 p-4 sm:items-center sm:gap-4"
-              >
-                <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-lg">
-                  <Image
-                    src={coverUrl(deal.game.images)}
-                    alt={deal.game.title}
-                    width={64}
-                    height={64}
-                    className="h-full w-full object-cover grayscale transition duration-500 group-hover:grayscale-0"
-                  />
+              <Link key={deal.id} href={`/game/${deal.game.slug}`} className="glass-panel group flex items-center gap-3 p-3">
+                <div className="relative h-14 w-14 overflow-hidden rounded-md">
+                  <Image src={coverUrl(deal.game.images)} alt={deal.game.title} fill className="image-zoom object-cover" />
                 </div>
-                <div className="flex-grow">
-                  <h4 className="font-bold">{deal.game.title}</h4>
-                  <p className="text-xs text-slate-500">{deal.store.name}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-bold text-white group-hover:text-cyan-300">{deal.game.title}</p>
+                  <p className="text-xs text-zinc-400">{deal.store.name}</p>
                 </div>
-                <div className="ml-auto text-right">
-                  <div className="text-lg font-bold">{formatMoney(deal.priceCents, deal.country, deal.currency)}</div>
-                  <div className="text-[10px] font-bold uppercase text-pink-500">-{deal.discountPercent}%</div>
+                <div className="text-right">
+                  <p className="text-lg font-black text-white">{formatMoney(deal.priceCents, deal.country, deal.currency)}</p>
+                  <p className="text-[10px] font-bold uppercase text-pink-400">-{deal.discountPercent}%</p>
                 </div>
               </Link>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="section-frame lg:col-span-1">
-          <div className="mb-6 flex items-center justify-between sm:mb-8">
-            <div className="flex items-center gap-3">
-              <div className="h-8 w-1 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.8)]" />
-              <h2 className="text-3xl font-bold text-white text-glow-emerald">Freebies</h2>
-            </div>
+        <section className="section-frame">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-2xl font-black text-white">Freebies</h2>
             <Link href="/freebies" className="text-xs font-semibold text-cyan-300 hover:underline">
-              See all &rarr;
+              Open list
             </Link>
           </div>
-
-          <div className="space-y-4">
+          <div className="space-y-3">
             {freebiesList.map((deal) => (
-              <div key={deal.id} className="glass-panel group p-1">
-                <div className="relative mb-3 h-40 overflow-hidden rounded-xl">
-                  <Image src={coverUrl(deal.game.images)} alt={deal.game.title} fill className="image-zoom object-cover opacity-80" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                  <div className="absolute bottom-3 left-3">
-                    <span className="rounded bg-white px-2 py-1 text-[10px] font-black uppercase text-black">FREE</span>
-                  </div>
+              <article key={deal.id} className="glass-panel overflow-hidden p-2">
+                <div className="relative mb-2 h-28 overflow-hidden rounded-lg">
+                  <Image src={coverUrl(deal.game.images)} alt={deal.game.title} fill className="image-zoom object-cover" />
+                  <div className="absolute left-2 top-2 rounded bg-white px-2 py-1 text-[10px] font-black uppercase text-black">Free</div>
                 </div>
-                <div className="p-3">
-                  <h3 className="font-bold">{deal.game.title}</h3>
-                  <p className="mb-2 text-xs text-slate-500">{deal.store.name}</p>
-                  <a
-                    href={deal.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block w-full rounded-lg border border-white/10 bg-white/5 py-2 text-center text-xs font-bold uppercase tracking-widest transition hover:bg-cyan-300 hover:text-black"
-                  >
-                    Claim Now
-                  </a>
-                </div>
-              </div>
+                <h3 className="line-clamp-1 font-bold text-white">{deal.game.title}</h3>
+                <p className="text-xs text-zinc-400">{deal.store.name}</p>
+              </article>
             ))}
-            {freebiesList.length === 0 ? <p className="text-sm text-slate-500">No freebies available in this region.</p> : null}
+            {freebiesList.length === 0 ? <p className="text-sm text-zinc-400">No freebies for the selected region.</p> : null}
           </div>
-        </div>
+        </section>
       </div>
 
-      <section className="section-frame mb-16 md:mb-20">
-        <div className="mb-6 flex flex-col gap-3 sm:mb-8 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-1 rounded-full bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.8)]" />
-            <h2 className="text-3xl font-bold text-white text-glow-amber">Gaming Industry News</h2>
-          </div>
+      <section className="section-frame">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <h2 className="text-2xl font-black text-white md:text-3xl">Gaming Industry News</h2>
           <Link href="/news" className="text-sm font-semibold text-cyan-300 hover:underline">
-            View all news &rarr;
+            View all
           </Link>
         </div>
-
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-3">
           {newsList.map((article) => (
-            <article key={article.id} className="group cursor-pointer">
+            <article key={article.id} className="glass-panel group overflow-hidden p-3">
               <Link href={`/news/${article.slug}`}>
-                <div className="relative mb-4 aspect-video overflow-hidden rounded-2xl border border-white/5">
+                <div className="relative mb-3 aspect-video overflow-hidden rounded-lg">
                   {article.imageUrl ? (
                     <Image src={article.imageUrl} alt={article.title} fill className="image-zoom object-cover" />
                   ) : (
-                    <div className="h-full w-full bg-slate-900" />
+                    <div className="h-full w-full bg-black/40" />
                   )}
-                  <div className="absolute left-4 top-4 rounded-full border border-white/10 bg-black/60 px-3 py-1 text-[10px] font-bold uppercase tracking-tighter text-white">
+                  <div className="absolute left-2 top-2 rounded-md bg-black/70 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-amber-300">
                     {article.category}
                   </div>
                 </div>
+                <h3 className="line-clamp-2 text-lg font-bold text-white group-hover:text-cyan-300">{article.title}</h3>
+                <p className="mt-1 line-clamp-2 text-sm text-zinc-400">{article.contentSnippet ?? "No snippet available."}</p>
+                <p className="mt-3 text-xs text-zinc-500">
+                  {article.source.name} | {newsAgeLabel(article.publishedAt)}
+                </p>
               </Link>
-              <h3 className="mb-2 text-xl font-bold transition group-hover:text-cyan-300">{article.title}</h3>
-              <p className="line-clamp-2 text-sm text-slate-400">{article.contentSnippet ?? "No snippet available."}</p>
-              <div className="mt-4 flex items-center gap-3">
-                <div className="h-6 w-6 rounded-full bg-white/10" />
-                <span className="text-xs font-medium text-slate-500">
-                  By {article.source.name} • {newsAgeLabel(article.publishedAt)}
-                </span>
-              </div>
             </article>
           ))}
         </div>
       </section>
-
-      <div className="glass-panel fixed bottom-6 left-1/2 z-50 hidden -translate-x-1/2 items-center gap-8 border border-cyan-300/20 px-6 py-3 md:flex">
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 animate-pulse rounded-full bg-green-500" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter text-slate-400">Live Updates Enabled</span>
-        </div>
-        <div className="h-4 w-px bg-white/10" />
-        <div className="text-[10px] font-bold uppercase tracking-tighter text-slate-400">
-          Total Savings: <span className="text-cyan-300">{formatMoney(totalSavings, country)}</span>
-        </div>
-      </div>
     </div>
   );
 }

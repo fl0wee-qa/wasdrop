@@ -35,7 +35,7 @@ export function MobileNav({ country }: { country: string }) {
       {open ? (
         <div
           data-testid="mobile-nav-drawer"
-          className="absolute left-0 top-20 w-full border-b border-white/10 bg-[#0b0f16]/95 px-4 pb-6 pt-4 backdrop-blur-lg"
+          className="absolute left-0 top-[5.7rem] w-full border border-white/10 bg-[#070c16]/95 px-4 pb-5 pt-4 backdrop-blur-xl rounded-b-2xl shadow-[0_20px_35px_-25px_rgba(0,0,0,0.9)]"
         >
           <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
             <nav className="grid grid-cols-2 gap-2">
@@ -43,7 +43,7 @@ export function MobileNav({ country }: { country: string }) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold text-zinc-100"
+                  className="rounded-md border border-white/10 bg-black/30 px-3 py-2 text-sm font-semibold text-zinc-100"
                   onClick={() => setOpen(false)}
                 >
                   {link.label}

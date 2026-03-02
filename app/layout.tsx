@@ -52,7 +52,7 @@ export default async function RootLayout({
           <ZoneBackdrop />
           <div className="relative min-h-screen flex flex-col">
             <Header country={country} />
-            <main className="mx-auto w-full max-w-7xl px-4 pb-8 pt-28 md:px-6 md:pb-12 md:pt-32 flex-1">{children}</main>
+            <main className="mx-auto flex w-full max-w-7xl flex-1 px-4 pb-8 pt-32 md:px-6 md:pb-12 md:pt-36">{children}</main>
             <Footer />
             <CookieBanner />
           </div>
@@ -61,4 +61,3 @@ export default async function RootLayout({
     </html>
   );
 }
-
